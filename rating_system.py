@@ -32,10 +32,10 @@ def update_ratings(team1_player1, team1_player2, team2_player1, team2_player2, w
     team2 = [t2p1_rating, t2p2_rating]
 
     # Determine ranks based on winner
-    ranks = [0, 0] if winner == 1 else [1, 0]
+    ranks = [0, 1] if winner == 1 else [1, 0]
 
     # Update ratings
-    new_ratings = model.rate([[t1p1_rating, t1p2_rating], [t2p1_rating, t2p2_rating]], ranks=ranks)
+    new_ratings = model.rate([team1, team2], ranks=ranks)
 
     # Extract new ratings
     new_t1p1, new_t1p2 = new_ratings[0]
