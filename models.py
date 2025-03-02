@@ -1,10 +1,11 @@
 import pandas as pd
 import streamlit as st
 from datetime import datetime
-import json
+import os
 
 # Initialize session state for data storage
 def initialize_data():
+    load_data()
     if 'players' not in st.session_state:
         st.session_state.players = pd.DataFrame(columns=[
             'name', 'mu', 'sigma', 'created_at', 'last_played'
@@ -12,7 +13,7 @@ def initialize_data():
 
     if 'matches' not in st.session_state:
         st.session_state.matches = pd.DataFrame(columns=[
-            'date', 'team1_player1', 'team1_player2', 
+            'date', 'team1_player1', 'team1_player2',
             'team2_player1', 'team2_player2', 'winner'
         ])
 
@@ -62,14 +63,24 @@ def record_match(team1_player1, team1_player2, team2_player1, team2_player2, win
 
 # Data persistence functions
 def save_data():
-    """Save data to Streamlit's persistent storage"""
-    st.session_state.players_json = st.session_state.players.to_json()
-    st.session_state.matches_json = st.session_state.matches.to_json()
+    """Save data to a JSON file"""
+    players_json = st.session_state.players.to_json()
+    matches_json = st.session_state.matches.to_json()
+
+    with open('players.json', 'w') as f:
+        f.write(players_json)
+
+    with open('matches.json', 'w') as f:
+        f.write(matches_json)
 
 def load_data():
-    """Load data from Streamlit's persistent storage"""
-    if 'players_json' in st.session_state and st.session_state.players_json:
-        st.session_state.players = pd.read_json(st.session_state.players_json)
+    """Load data from a JSON file"""
+    if os.path.exists('players.json'):
+        with open('players.json', 'r') as f:
+            players_json = f.read()
+        st.session_state.players = pd.read_json(players_json)
 
-    if 'matches_json' in st.session_state and st.session_state.matches_json:
-        st.session_state.matches = pd.read_json(st.session_state.matches_json)
+    if os.path.exists('matches.json'):
+        with open('matches.json', 'r') as f:
+            matches_json = f.read()
+        st.session_state.matches = pd.read_json(matches_json)
