@@ -58,8 +58,23 @@ def get_display_rating(mu, sigma):
     """Calculate display rating (mu - 3*sigma)"""
     return mu - 3 * sigma
 
+# Define thresholds for ranks
+RANK_THRESHOLDS = {
+    'Diamond': 40,
+    'Gold': 30,
+    'Silver': 20,
+    'Bronze': -9999
+}
+
+def assign_rank(display_rating):
+    """Assign a rank based on the display rating"""
+    for rank, threshold in RANK_THRESHOLDS.items():
+        if display_rating >= threshold:
+            return rank
+    return 'Unranked'
+
 def get_leaderboard():
-    """Return players sorted by rating"""
+    """Return players sorted by rating with ranks if 10 or more matches are played"""
     if len(st.session_state.players) == 0:
         return pd.DataFrame()
 
@@ -67,5 +82,10 @@ def get_leaderboard():
     leaderboard['display_rating'] = leaderboard.apply(
         lambda x: get_display_rating(x['mu'], x['sigma']), axis=1
     )
+
+    if len(st.session_state.matches) >= 10:
+        leaderboard['rank'] = leaderboard['display_rating'].apply(assign_rank)
+    else:
+        leaderboard['rank'] = 'Unranked'
 
     return leaderboard.sort_values('display_rating', ascending=False)
