@@ -1,6 +1,4 @@
 import streamlit as st
-import pandas as pd
-from datetime import datetime
 
 # Import our modules
 from models import initialize_data, add_player, get_all_players, record_match, save_data, load_data
@@ -119,6 +117,14 @@ with tab1:
                 del st.session_state.selecting_position
             st.rerun()
 
+    # Check if all players are selected
+    all_players_selected = (
+            st.session_state.team1_player1 is not None and
+            st.session_state.team1_player2 is not None and
+            st.session_state.team2_player1 is not None and
+            st.session_state.team2_player2 is not None
+    )
+
     # Match controls
     st.divider()
 
@@ -134,9 +140,18 @@ with tab1:
                 st.session_state.team2_player2 = None
                 st.rerun()
         else:
-            if st.button("Cancel Setup", key="cancel_setup_btn", use_container_width=True):
-                st.session_state.match_setup_mode = False
-                st.rerun()
+            if all_players_selected:
+                if st.button("Confirm Teams", key="confirm_teams_btn", use_container_width=True):
+                    st.session_state.match_setup_mode = False
+                    st.rerun()
+            else:
+                if st.button("Cancel Setup", key="cancel_setup_btn", use_container_width=True):
+                    st.session_state.match_setup_mode = False
+                    st.session_state.team1_player1 = None
+                    st.session_state.team1_player2 = None
+                    st.session_state.team2_player1 = None
+                    st.session_state.team2_player2 = None
+                    st.rerun()
 
     # Only show winner buttons if all players are selected
     all_players_selected = (
@@ -226,9 +241,9 @@ with tab2:
         display_board['Wins'] = display_board['name'].apply(lambda x: get_player_stats(x)['wins'])
         display_board['Win Rate'] = display_board['name'].apply(lambda x: f"{get_player_stats(x)['win_rate']:.1f}%")
 
-        # Display the leaderboard
+        # Display the leaderboard with rank
         st.dataframe(
-            display_board[['name', 'Rating', 'Uncertainty', 'Matches', 'Wins', 'Win Rate']].rename(columns={'name': 'Player'}),
+            display_board[['name', 'rank', 'Rating', 'Uncertainty', 'Matches', 'Wins', 'Win Rate']].rename(columns={'name': 'Player', 'rank': 'Rank'}),
             use_container_width=True,
             hide_index=True
         )
