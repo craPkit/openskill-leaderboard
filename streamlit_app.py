@@ -1,7 +1,7 @@
 import streamlit as st
 
 # Import our modules
-from models import initialize_data, add_player, get_all_players, record_match, save_data, load_data
+from models import initialize_data, add_player, get_all_players, record_match, save_data
 from rating_system import update_ratings, get_leaderboard
 from utils import get_player_stats, get_recent_matches, get_most_frequent_teammates
 
@@ -15,7 +15,7 @@ st.set_page_config(
 
 # Initialize data
 initialize_data()
-load_data()
+# load_data()
 
 # Initialize session state for match setup
 if 'team1_player1' not in st.session_state:
@@ -155,10 +155,10 @@ with tab1:
 
     # Only show winner buttons if all players are selected
     all_players_selected = (
-        st.session_state.team1_player1 is not None and
-        st.session_state.team1_player2 is not None and
-        st.session_state.team2_player1 is not None and
-        st.session_state.team2_player2 is not None
+            st.session_state.team1_player1 is not None and
+            st.session_state.team1_player2 is not None and
+            st.session_state.team2_player1 is not None and
+            st.session_state.team2_player2 is not None
     )
 
     if all_players_selected and not st.session_state.match_setup_mode:
@@ -222,7 +222,7 @@ with tab1:
     recent_matches = get_recent_matches(limit=5)
     if len(recent_matches) > 0:
         for _, match in recent_matches.iterrows():
-            st.info(f"{match['date_formatted']}: {match['result']}")
+            st.info(f"{match['date_formatted']}: {match['winner']}")
     else:
         st.info("No matches recorded yet.")
 
