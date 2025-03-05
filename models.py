@@ -1,32 +1,24 @@
 import pandas as pd
 import streamlit as st
+from streamlit_gsheets import GSheetsConnection
+
 from datetime import datetime
-import gspread
-from oauth2client.service_account import ServiceAccountCredentials
+
+conn: GSheetsConnection = None
 
 
 # Initialize session state for data storage
 def initialize_data():
-    if 'players' not in st.session_state:
-        st.session_state.players = pd.DataFrame(columns=[
-            'name', 'mu', 'sigma', 'created_at', 'last_played'
-        ])
-    if 'matches' not in st.session_state:
-        st.session_state.matches = pd.DataFrame(columns=[
-            'date', 'team1_player1', 'team1_player2',
-            'team2_player1', 'team2_player2', 'winner'
-        ])
-    if 'data_loaded' not in st.session_state:
-        load_data_from_google_sheets()
-        st.session_state.data_loaded = True
-
-
-def initialize_google_sheets():
-    scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
-    creds = ServiceAccountCredentials.from_json_keyfile_name(
-        r'C:\Users\ivayl\Downloads\wuzzler-452700-d0b4a9f87b67.json', scope)
-    client = gspread.authorize(creds)
-    return client
+    global conn
+    conn = st.connection("gsheets", type=GSheetsConnection)
+    st.session_state.players = pd.DataFrame(columns=[
+        'name', 'mu', 'sigma', 'created_at', 'last_played'
+    ])
+    st.session_state.matches = pd.DataFrame(columns=[
+        'date', 'team1_player1', 'team1_player2',
+        'team2_player1', 'team2_player2', 'winner'
+    ])
+    load_data_from_google_sheets()
 
 
 # Player management functions
@@ -42,10 +34,12 @@ def add_player(name):
                 'created_at': [datetime.now()],
                 'last_played': [None]
             })
-            st.session_state.players = pd.concat([st.session_state.players, new_player], ignore_index=True)
-            save_data()
+            st.session_state.players = pd.concat([st.session_state.players, new_player],
+                                                 ignore_index=True)
+            save_data_to_google_sheets()
             return True
-        elif 'name' in st.session_state.players.columns and not any(st.session_state.players['name'] == name):
+        elif 'name' in st.session_state.players.columns and not any(
+                st.session_state.players['name'] == name):
             # Add the player if the name does not already exist
             new_player = pd.DataFrame({
                 'name': [name],
@@ -54,8 +48,9 @@ def add_player(name):
                 'created_at': [datetime.now()],
                 'last_played': [None]
             })
-            st.session_state.players = pd.concat([st.session_state.players, new_player], ignore_index=True)
-            save_data()
+            st.session_state.players = pd.concat([st.session_state.players, new_player],
+                                                 ignore_index=True)
+            save_data_to_google_sheets()
             return True
     return False
 
@@ -93,45 +88,32 @@ def record_match(team1_player1, team1_player2, team2_player1, team2_player2, win
     # Save data to Google Sheets only once
     save_data_to_google_sheets()
 
-
-def save_data():
-    save_data_to_google_sheets()
-
-
 # Data persistence functions
 def save_data_to_google_sheets():
-    client = initialize_google_sheets()
-    players_sheet = client.open("wuzzler").worksheet("Players")
-    matches_sheet = client.open("wuzzler").worksheet("Matches")
-
-    # Convert Timestamps to strings
+    global conn
     players_data = st.session_state.players.copy()
+    matches_data = st.session_state.matches.copy()
+
     if not players_data.empty:
         players_data['created_at'] = players_data['created_at'].astype(str)
         players_data['last_played'] = players_data['last_played'].astype(str)
-        # Check if the players sheet is empty and initialize it
-        if players_sheet.row_count == 1 and players_sheet.col_count == 1:
-            players_sheet.update([players_data.columns.values.tolist()])
-        players_sheet.update([players_data.columns.values.tolist()] + players_data.values.tolist())
+        st.session_state.players = pd.DataFrame(players_data)
+        conn.update(worksheet="Players", data=players_data)
 
-    matches_data = st.session_state.matches.copy()
-    # Check if the matches data is empty
     if not matches_data.empty:
         matches_data['date'] = matches_data['date'].astype(str)
-        # Check if the matches sheet is empty and initialize it
-        if matches_sheet.row_count == 1 and matches_sheet.col_count == 1:
-            matches_sheet.update([matches_data.columns.values.tolist()])
-
-        matches_sheet.update([matches_data.columns.values.tolist()] + matches_data.values.tolist())
+        st.session_state.matches = pd.DataFrame(matches_data)
+        conn.update(worksheet="Matches", data=matches_data)
 
 
 def load_data_from_google_sheets():
-    client = initialize_google_sheets()
-    players_sheet = client.open("wuzzler").worksheet("Players")
-    matches_sheet = client.open("wuzzler").worksheet("Matches")
-    
-    players_data = players_sheet.get_all_records(expected_headers=['name', 'mu', 'sigma', 'created_at', 'last_played'])
-    matches_data = matches_sheet.get_all_records(expected_headers=['date', 'team1_player1', 'team1_player2', 'team2_player1', 'team2_player2', 'winner'])
+    global conn
+    players_sheet = conn.read(worksheet="Players")
+    matches_sheet = conn.read(worksheet="Matches")
 
-    st.session_state.players = pd.DataFrame(players_data)
-    st.session_state.matches = pd.DataFrame(matches_data)
+    st.session_state.players = pd.DataFrame(data=players_sheet,
+                                            columns=['name', 'mu', 'sigma', 'created_at',
+                                                     'last_played'])
+    st.session_state.matches = pd.DataFrame(data=matches_sheet,
+                                            columns=['date', 'team1_player1', 'team1_player2',
+                                                     'team2_player1', 'team2_player2', 'winner'])
