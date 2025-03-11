@@ -1,6 +1,5 @@
 import pandas as pd
 import streamlit as st
-from datetime import datetime, timedelta
 
 def get_player_stats(player_name):
     """Get statistics for a specific player"""
@@ -58,21 +57,32 @@ def get_player_stats(player_name):
 
 def get_recent_matches(limit=10):
     """Get recent matches with results"""
-    if len(st.session_state.matches) == 0:
-        return pd.DataFrame()
+    print(st.session_state.matches)
+    print(type(st.session_state.matches))
+    matches = st.session_state.matches.copy()
 
-    matches = st.session_state.matches.copy().sort_values('date', ascending=False).head(limit)
-
-    # Format for display
+    # Check if the DataFrame is empty or if 'date' column does not exist
+    if matches.empty or 'date' not in matches.columns:
+        return pd.DataFrame()  # Return an empty DataFrame
+    
+    # Convert the 'date' column to datetime
+    matches['date'] = pd.to_datetime(matches['date'], errors='coerce')
+    
+    # Drop rows where 'date' conversion failed
+    matches = matches.dropna(subset=['date'])
+    # Format the 'date' column
+    matches['date_formatted'] = matches['date'].dt.strftime('%Y-%m-%d %H:%M')
+    
+    # Create the 'result' column
     matches['result'] = matches.apply(
-        lambda x: f"{x['team1_player1']} & {x['team1_player2']} vs {x['team2_player1']} & {x['team2_player2']} - " + 
-                 (f"Team 1 Won" if x['winner'] == 1 else f"Team 2 Won"),
+        lambda row: f"Team 1 ({row['team1_player1']}, {row['team1_player2']}) vs Team 2 ({row['team2_player1']}, {row['team2_player2']}) - Winner: {'Team 1' if row['winner'] == 1 else 'Team 2'}",
         axis=1
     )
-
-    matches['date_formatted'] = matches['date'].dt.strftime('%Y-%m-%d %H:%M')
-
-    return matches[['date_formatted', 'result']]
+    
+    # Sort by date and limit the number of recent matches
+    recent_matches = matches.sort_values(by='date', ascending=False).head(limit)
+    
+    return recent_matches
 
 def get_most_frequent_teammates(player_name, limit=3):
     """Find most frequent teammates for a player"""
