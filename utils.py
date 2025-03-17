@@ -57,8 +57,6 @@ def get_player_stats(player_name):
 
 def get_recent_matches(limit=10):
     """Get recent matches with results"""
-    print(st.session_state.matches)
-    print(type(st.session_state.matches))
     matches = st.session_state.matches.copy()
 
     # Check if the DataFrame is empty or if 'date' column does not exist
@@ -70,6 +68,7 @@ def get_recent_matches(limit=10):
     
     # Drop rows where 'date' conversion failed
     matches = matches.dropna(subset=['date'])
+    
     # Format the 'date' column
     matches['date_formatted'] = matches['date'].dt.strftime('%Y-%m-%d %H:%M')
     

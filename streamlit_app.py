@@ -1,19 +1,15 @@
 import streamlit as st
 
 # Import our modules
-from models import initialize_data, add_player, get_all_players, record_match, \
-    save_data_to_google_sheets
+from models import initialize_data, add_player, get_all_players, record_match, save_data
 from rating_system import update_ratings, get_leaderboard
 from utils import get_player_stats, get_recent_matches, get_most_frequent_teammates
 
-def refresh_leaderboard():
-    st.session_state.leaderboard = get_leaderboard()
-    
 # Page configuration
 st.set_page_config(
     page_title="Table Soccer Tracker",
     page_icon="⚽",
-    layout="centered",
+    layout="wide",
     initial_sidebar_state="collapsed"
 )
 
@@ -184,7 +180,7 @@ with tab1:
                     st.session_state.team2_player2,
                     winner=1
                 )
-                save_data_to_google_sheets()
+                save_data()
                 st.success("Match recorded! Team 1 wins!")
                 # Reset match setup
                 st.session_state.team1_player1 = None
@@ -211,7 +207,7 @@ with tab1:
                     st.session_state.team2_player2,
                     winner=2
                 )
-                save_data_to_google_sheets()
+                save_data()
                 st.success("Match recorded! Team 2 wins!")
                 # Reset match setup
                 st.session_state.team1_player1 = None
@@ -297,4 +293,3 @@ with tab3:
 # Footer
 st.divider()
 st.caption("Table Soccer Tracker - Built with Streamlit and OpenSkill")
-
