@@ -16,10 +16,6 @@ def initialize_data():
             'date', 'team1_player1', 'team1_player2',
             'team2_player1', 'team2_player2', 'winner'
         ])
-    if 'data_loaded' not in st.session_state:
-        load_data_from_google_sheets()
-        st.session_state.data_loaded = True
-
 
 def initialize_google_sheets():
     scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
@@ -31,7 +27,22 @@ def initialize_google_sheets():
 # Player management functions
 def add_player(name):
     """Add a new player with default rating"""
-    if name and not any(st.session_state.players['name'] == name):
+    if name:
+        if st.session_state.players.empty:
+            # Directly add the player if the DataFrame is empty
+            new_player = pd.DataFrame({
+                'name': [name],
+                'mu': [25.0],  # Default OpenSkill mu value
+                'sigma': [8.333],  # Default OpenSkill sigma value
+                'created_at': [datetime.now()],
+                'last_played': [None]
+            })
+            st.session_state.players = pd.concat([st.session_state.players, new_player],
+                                                 ignore_index=True)
+            save_data_to_google_sheets()
+            return True
+        elif 'name' in st.session_state.players.columns and not any(
+                st.session_state.players['name'] == name):
             # Add the player if the name does not already exist
             new_player = pd.DataFrame({
                 'name': [name],
@@ -40,8 +51,9 @@ def add_player(name):
                 'created_at': [datetime.now()],
                 'last_played': [None]
             })
-            st.session_state.players = pd.concat([st.session_state.players, new_player], ignore_index=True)
-            save_data()
+            st.session_state.players = pd.concat([st.session_state.players, new_player],
+                                                 ignore_index=True)
+            save_data_to_google_sheets()
             return True
     return False
 
