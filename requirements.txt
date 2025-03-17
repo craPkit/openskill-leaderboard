@@ -1,4 +1,3 @@
-streamlit>=1.28.0
+streamlit>=1.24.0
 pandas>=1.5.0
 openskill>=3.0.0
-st-gsheets-connection~=0.1.0
