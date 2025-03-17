@@ -1,7 +1,7 @@
 import streamlit as st
 
 # Import our modules
-from models import initialize_data, add_player, get_all_players, record_match, save_data, load_data
+from models import initialize_data, add_player, get_all_players, record_match, save_data
 from rating_system import update_ratings, get_leaderboard
 from utils import get_player_stats, get_recent_matches, get_most_frequent_teammates
 
@@ -15,7 +15,6 @@ st.set_page_config(
 
 # Initialize data
 initialize_data()
-load_data()
 
 # Initialize session state for match setup
 if 'team1_player1' not in st.session_state:
