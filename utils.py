@@ -1,5 +1,6 @@
 import pandas as pd
 import streamlit as st
+from datetime import datetime, timedelta
 
 def get_player_stats(player_name):
     """Get statistics for a specific player"""
@@ -57,31 +58,21 @@ def get_player_stats(player_name):
 
 def get_recent_matches(limit=10):
     """Get recent matches with results"""
-    matches = st.session_state.matches.copy()
+    if len(st.session_state.matches) == 0:
+        return pd.DataFrame()
 
-    # Check if the DataFrame is empty or if 'date' column does not exist
-    if matches.empty or 'date' not in matches.columns:
-        return pd.DataFrame()  # Return an empty DataFrame
-    
-    # Convert the 'date' column to datetime
-    matches['date'] = pd.to_datetime(matches['date'], errors='coerce')
-    
-    # Drop rows where 'date' conversion failed
-    matches = matches.dropna(subset=['date'])
-    
-    # Format the 'date' column
-    matches['date_formatted'] = matches['date'].dt.strftime('%Y-%m-%d %H:%M')
-    
-    # Create the 'result' column
+    matches = st.session_state.matches.copy().sort_values('date', ascending=False).head(limit)
+
+    # Format for display
     matches['result'] = matches.apply(
-        lambda row: f"Team 1 ({row['team1_player1']}, {row['team1_player2']}) vs Team 2 ({row['team2_player1']}, {row['team2_player2']}) - Winner: {'Team 1' if row['winner'] == 1 else 'Team 2'}",
+        lambda x: f"{x['team1_player1']} & {x['team1_player2']} vs {x['team2_player1']} & {x['team2_player2']} - " + 
+                 (f"Team 1 Won" if x['winner'] == 1 else f"Team 2 Won"),
         axis=1
     )
-    
-    # Sort by date and limit the number of recent matches
-    recent_matches = matches.sort_values(by='date', ascending=False).head(limit)
-    
-    return recent_matches
+
+    matches['date_formatted'] = matches['date'].dt.strftime('%Y-%m-%d %H:%M')
+
+    return matches[['date_formatted', 'result']]
 
 def get_most_frequent_teammates(player_name, limit=3):
     """Find most frequent teammates for a player"""

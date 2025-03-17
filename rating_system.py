@@ -42,16 +42,16 @@ def update_ratings(team1_player1, team1_player2, team2_player1, team2_player2, w
     new_t2p1, new_t2p2 = new_ratings[1]
 
     # Update dataframe
-    players_df.at[t1p1_idx, 'mu'] = float(new_t1p1.mu)
+    players_df.at[t1p1_idx, 'mu'] = new_t1p1.mu
     players_df.at[t1p1_idx, 'sigma'] = new_t1p1.sigma
 
-    players_df.at[t1p2_idx, 'mu'] = float(new_t1p2.mu)
+    players_df.at[t1p2_idx, 'mu'] = new_t1p2.mu
     players_df.at[t1p2_idx, 'sigma'] = new_t1p2.sigma
 
-    players_df.at[t2p1_idx, 'mu'] = float(new_t2p1.mu)
+    players_df.at[t2p1_idx, 'mu'] = new_t2p1.mu
     players_df.at[t2p1_idx, 'sigma'] = new_t2p1.sigma
 
-    players_df.at[t2p2_idx, 'mu'] = float(new_t2p2.mu)
+    players_df.at[t2p2_idx, 'mu'] = new_t2p2.mu
     players_df.at[t2p2_idx, 'sigma'] = new_t2p2.sigma
 
 def get_display_rating(mu, sigma):
