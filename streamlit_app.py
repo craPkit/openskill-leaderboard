@@ -7,7 +7,7 @@ from utils import get_player_stats, get_recent_matches, get_most_frequent_teamma
 
 # Page configuration
 st.set_page_config(
-    page_title="Table Soccer Tracker",
+    page_title="adesso Wuzzler Scoreboard",
     page_icon="⚽",
     layout="wide",
     initial_sidebar_state="collapsed"
@@ -29,10 +29,10 @@ if 'match_setup_mode' not in st.session_state:
     st.session_state.match_setup_mode = False
 
 # App title
-st.title("⚽ Table Soccer Tracker")
+st.title("⚽ adesso Wuzzler Scoreboard")
 
 # Tabs for different sections
-tab1, tab2, tab3 = st.tabs(["Play Match", "Leaderboard", "Player Management"])
+tab1, tab2, tab3 = st.tabs(["Spielen", "Leaderboard", "Spieler verwalten"])
 
 with tab1:
     st.header("Play Match")

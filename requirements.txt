@@ -2,6 +2,5 @@ streamlit>=1.24.0
 pandas>=1.5.0
 openskill>=3.0.0
 
-
 gspread~=5.12.4
 oauth2client~=4.1.3
