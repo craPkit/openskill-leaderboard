@@ -6,6 +6,7 @@ from oauth2client.service_account import ServiceAccountCredentials
 
 
 # Initialize session state for data storage
+@st.cache_data.clear()
 def initialize_data():
     if 'players' not in st.session_state:
         st.session_state.players = pd.DataFrame(columns=[
@@ -17,6 +18,7 @@ def initialize_data():
             'team2_player1', 'team2_player2', 'winner'
         ])
 
+@st.cache_data.clear()
 def initialize_google_sheets():
     scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
     creds = ServiceAccountCredentials.from_json_keyfile_dict(st.secrets.connections.gsheets, scope)
@@ -25,6 +27,7 @@ def initialize_google_sheets():
 
 
 # Player management functions
+@st.cache_data.clear()
 def add_player(name):
     """Add a new player with default rating"""
     if name:
@@ -57,7 +60,7 @@ def add_player(name):
             return True
     return False
 
-
+@st.cache_data.clear()
 def get_all_players():
     """Return all players sorted by name"""
     if 'sorted_players' not in st.session_state:
@@ -69,6 +72,7 @@ def get_all_players():
 
 
 # Match management functions
+@st.cache_data.clear()
 def record_match(team1_player1, team1_player2, team2_player1, team2_player2, winner):
     """Record a match result"""
     new_match = pd.DataFrame({
@@ -91,12 +95,13 @@ def record_match(team1_player1, team1_player2, team2_player1, team2_player2, win
     # Save data to Google Sheets only once
     save_data_to_google_sheets()
 
-
+@st.cache_data.clear()
 def save_data():
     save_data_to_google_sheets()
 
 
 # Data persistence functions
+@st.cache_data.clear()
 def save_data_to_google_sheets():
     client = initialize_google_sheets()
     players_sheet = client.open_by_url(st.secrets.connections.gsheets.spreadsheet).worksheet("Players")
@@ -122,7 +127,7 @@ def save_data_to_google_sheets():
 
         matches_sheet.update([matches_data.columns.values.tolist()] + matches_data.values.tolist())
 
-
+@st.cache_data.clear()
 def load_data_from_google_sheets():
     client = initialize_google_sheets()
     # players_sheet = client.open("wuzzler").worksheet("Players")
